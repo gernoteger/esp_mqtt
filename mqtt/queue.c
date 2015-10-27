@@ -27,6 +27,9 @@
 * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 * POSSIBILITY OF SUCH DAMAGE.
 */
+
+#include "user_config.H"
+
 #include "queue.h"
 
 #include "user_interface.h"

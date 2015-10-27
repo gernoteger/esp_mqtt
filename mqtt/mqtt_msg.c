@@ -30,8 +30,8 @@
 */
 
 #include <string.h>
-#include "mqtt_msg.h"
 #include "user_config.h"
+#include "mqtt_msg.h"
 #define MQTT_MAX_FIXED_HEADER_SIZE 3
 
 enum mqtt_connect_flag

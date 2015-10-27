@@ -29,14 +29,19 @@
 * POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "user_config.h"
 #include "user_interface.h"
+
+
+#include "mqttdebug.h"
 #include "osapi.h"
-#include "espconn.h"
+
+
 #include "os_type.h"
 #include "mem.h"
 #include "mqtt_msg.h"
-#include "debug.h"
-#include "user_config.h"
+//#include "debug.h"
+
 #include "mqtt.h"
 #include "queue.h"
 
@@ -79,7 +84,9 @@ mqtt_dns_found(const char *name, ip_addr_t *ipaddr, void *arg)
 	{
 		os_memcpy(client->pCon->proto.tcp->remote_ip, &ipaddr->addr, 4);
 		if(client->security){
+#ifndef MQTT_NO_SSL
 			espconn_secure_connect(client->pCon);
+#endif
 		}
 		else {
 			espconn_connect(client->pCon);
@@ -141,7 +148,9 @@ READPACKET:
 				if(client->mqtt_state.pending_msg_type != MQTT_MSG_TYPE_CONNECT){
 					INFO("MQTT: Invalid packet\r\n");
 					if(client->security){
+#ifndef MQTT_NO_SSL
 						espconn_secure_disconnect(client->pCon);
+#endif
 					}
 					else {
 						espconn_disconnect(client->pCon);
@@ -282,7 +291,9 @@ void ICACHE_FLASH_ATTR mqtt_timer(void *arg)
 			client->sendTimeout = MQTT_SEND_TIMOUT;
 			INFO("MQTT: Sending, type: %d, id: %04X\r\n",client->mqtt_state.pending_msg_type, client->mqtt_state.pending_msg_id);
 			if(client->security){
+#ifndef MQTT_NO_SSL
 				espconn_secure_sent(client->pCon, client->mqtt_state.outbound_message->data, client->mqtt_state.outbound_message->length);
+#endif
 			}
 			else{
 				espconn_sent(client->pCon, client->mqtt_state.outbound_message->data, client->mqtt_state.outbound_message->length);
@@ -347,7 +358,9 @@ mqtt_tcpclient_connect_cb(void *arg)
 	client->sendTimeout = MQTT_SEND_TIMOUT;
 	INFO("MQTT: Sending, type: %d, id: %04X\r\n",client->mqtt_state.pending_msg_type, client->mqtt_state.pending_msg_id);
 	if(client->security){
+#ifndef MQTT_NO_SSL
 		espconn_secure_sent(client->pCon, client->mqtt_state.outbound_message->data, client->mqtt_state.outbound_message->length);
+#endif
 	}
 	else{
 		espconn_sent(client->pCon, client->mqtt_state.outbound_message->data, client->mqtt_state.outbound_message->length);
@@ -420,7 +433,7 @@ MQTT_Publish(MQTT_Client *client, const char* topic, const char* data, int data_
   * @retval TRUE if success queue
   */
 BOOL ICACHE_FLASH_ATTR
-MQTT_Subscribe(MQTT_Client *client, char* topic, uint8_t qos)
+MQTT_Subscribe(MQTT_Client *client, const char* topic, uint8_t qos)
 {
 	uint8_t dataBuffer[MQTT_BUF_SIZE];
 	uint16_t dataLen;
@@ -469,7 +482,9 @@ MQTT_Task(os_event_t *e)
 			client->sendTimeout = MQTT_SEND_TIMOUT;
 			INFO("MQTT: Sending, type: %d, id: %04X\r\n",client->mqtt_state.pending_msg_type, client->mqtt_state.pending_msg_id);
 			if(client->security){
+#ifndef MQTT_NO_SSL
 				espconn_secure_sent(client->pCon, dataBuffer, dataLen);
+#endif
 			}
 			else{
 				espconn_sent(client->pCon, dataBuffer, dataLen);
@@ -602,7 +617,9 @@ MQTT_Connect(MQTT_Client *mqttClient)
 	if(UTILS_StrToIP(mqttClient->host, &mqttClient->pCon->proto.tcp->remote_ip)) {
 		INFO("TCP: Connect to ip  %s:%d\r\n", mqttClient->host, mqttClient->port);
 		if(mqttClient->security){
+#ifndef MQTT_NO_SSL
 			espconn_secure_connect(mqttClient->pCon);
+#endif
 		}
 		else {
 			espconn_connect(mqttClient->pCon);
